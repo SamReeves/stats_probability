@@ -2,7 +2,7 @@
 title: "Lab 2: Introduction to Data"
 author: "Sam Reeves"
 date: "`r Sys.Date()`"
-output: openintro::lab_report
+output: pdf_document
 ---
 
 ```{r load-packages, message=FALSE}
