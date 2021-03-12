@@ -37,6 +37,8 @@ Let's load the packages.
 library(tidyverse)
 library(openintro)
 library(infer)
+
+set.seed(1337)
 ```
 
 ### The data
@@ -87,13 +89,18 @@ samp <- us_adults %>%
   sample_n(size = n)
 ```
 
-1.  What percent of the adults in your sample think climate change affects their 
-    local community? **Hint:** Just like we did with the population, we can calculate 
-    the proportion of those **in this sample** who think climate change affects their 
-    local community.
+### 1.  What percent of the adults in your sample think climate change affects their local community? **Hint:** Just like we did with the population, we can calculate the proportion of those **in this sample** who think climate change affects their local community.
 
-1.  Would you expect another student's sample proportion to be identical to yours? 
-    Would you expect it to be similar? Why or why not?
+```{r}
+samp %>%
+  count(climate_change_affects) %>%
+  filter(climate_change_affects == "Yes") %>%
+  mutate(p_hat = n / 60)
+```
+
+### 2.  Would you expect another student's sample proportion to be identical to yours?  Would you expect it to be similar? Why or why not?
+
+If the other student sets the random seed to 1337, then I would expect the sampling to be identical.  Otherwise, the sample may be similar but very unlikely to be the same.
 
 ## Confidence intervals
 
@@ -108,7 +115,7 @@ In essence, bootstrapping assumes that there are more of observations in the pop
 - **Step 1.** Take a bootstrap sample - a random sample taken **with replacement** from the original sample, of the same size as the original sample.
 - **Step 2.** Calculate the bootstrap statistic - a statistic such as mean, median, proportion, slope, etc. computed on the bootstrap samples.
 - **Step 3.** Repeat steps (1) and (2) many times to create a bootstrap distribution - a distribution of bootstrap statistics.
-- **Step 4.** Calculate the bounds of the XX% confidence interval as the middle XX% j knof the bootstrap distribution.
+- **Step 4.** Calculate the bounds of the XX% confidence interval as the middle XX% of the bootstrap distribution.
 
 Instead of coding up each of these steps, we will construct confidence intervals using the **infer** package.
 
@@ -141,17 +148,19 @@ To recap: even though we don't know what the full population looks like, we're 9
 
 ## Confidence levels
 
-1.  In the interpretation above, we used the phrase "95% confident". What does "95% confidence" mean?
+### 1.  In the interpretation above, we used the phrase "95% confident". What does "95% confidence" mean?
+
+It means that we are 95% certain that we have captured the true population proportion inside of our lower and upper bounds.
 
 In this case, you have the rare luxury of knowing the true population proportion (62%) since you have data on the entire population. 
 
-1.  Does your confidence interval capture the true population proportion of US adults 
-    who think climate change affects their local community? If you are working on this 
-    lab in a classroom, does your neighbor's interval capture this value? 
+### 2.  Does your confidence interval capture the true population proportion of US adults who think climate change affects their local community? If you are working on this lab in a classroom, does your neighbor's interval capture this value? 
 
-1.  Each student should have gotten a slightly different confidence interval. What 
-    proportion of those intervals would you expect to capture the true population 
-    mean? Why?
+Umm, surprisingly, 62% is outside of the bootstrapped interval 33% - 58%.
+
+### 3.  Each student should have gotten a slightly different confidence interval. What proportion of those intervals would you expect to capture the true population mean? Why?
+
+I would expect about 95% of the students to capture the true population mean because of the nature of the confidence interval.  It would make sense that some would fall outside, as there is variance in the sampling process.  As sample size approaches the total population, standard error would approach zero.
 
 In the next part of the lab, you will collect many samples to learn more about how sample proportions and confidence intervals constructed based on those samples vary from one sample to another.
 
