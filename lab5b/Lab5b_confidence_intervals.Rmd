@@ -283,6 +283,8 @@ shinyApp(
 
 ### 1.  Given a sample size of 60, 1000 bootstrap samples for each interval, and 50 confidence intervals constructed (the default values for the above app), what proportion of your confidence intervals include the true population proportion? Is this proportion exactly equal to the confidence level? If not, explain why. Make sure to include your plot in your answer.
 
+ci1.png
+
 In our plot above, we have 48/50 bootstrapped intervals containing the actual population proportion.  This is close enough to the confidence interval we had intended (96% vs. 95%) that I would say, yes, this experiment went exactly as expected.
 
 * * *
@@ -293,14 +295,47 @@ In our plot above, we have 48/50 bootstrapped intervals containing the actual po
 
 If we choose a confidence interval of 99%, the interval will be much wider.  We are in this case 99% sure we have captured the correct statistic inside the bounds.  If we choose a 65% interval, the area under the curve between the bounds will be considerably narrower, as there is a greater chance for the desired population statistic to fall outside of our selection.
 
-### 2.  Using code from the **infer** package and data fromt the one sample you have (`samp`), find a confidence interval for the proportion of US Adults who think climate change is affecting their local community with a confidence level of your choosing (other than 95%) and interpret it.
+### 2.  Using code from the **infer** package and data from the one sample you have (`samp`), find a confidence interval for the proportion of US Adults who think climate change is affecting their local community with a confidence level of your choosing (other than 95%) and interpret it.
+
+```{r}
+samp %>%
+  specify(response = climate_change_affects, success = "Yes") %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.75)
+```
+
+There is 75% chance that the actual population proportion of people who believe climate change affects their community is between 0.383 and 0.517.
 
 ### 3.  Using the app, calculate 50 confidence intervals at the confidence level you chose in the previous question, and plot all intervals on one plot, and calculate the proportion of intervals that include the true population proportion.  How does this percentage compare to the confidence level selected for the intervals?
-    
+
+ci2.png
+
+34 / 50 = 68%
+
+This is substantially less effective than the confidence interval of 75% we selected.
+
 ### 4.  Lastly, try one more (different) confidence level. First, state how you expect the width of this interval to compare to previous ones you calculated. Then, calculate the bounds of the interval using the **infer** package and data from `samp` and interpret it. Finally, use the app to generate many intervals and calculate the proportion of intervals that are capture the true population proportion.
 
+Let's try 99%.  I expect the lower and upper bounds of this interval to be considerably wider than the other intervals, and I expect the proportion of intervals which actually contain the population proportion of 62% to more closely reflect the chosen confidence.
+
+```{r}
+samp %>%
+  specify(response = climate_change_affects, success = "Yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.99)
+```
+
+ci3.png
+
+Only one out of 50 intervals did not contain the target statistic.  Our suspicions are confirmed.
+
 ### 5.  Using the app, experiment with different sample sizes and comment on how the widths of intervals change as sample size changes (increases and decreases).
-    
+
+Changing the sample sizes has a great impact on the widths of the intervals.  With a sample size of ten, the interval width is 50%, and with a sample size of 5000, the interval shrinks to about 3%.
+
 ### 6.  Finally, given a sample size (say, 60), how does the width of the interval change as you increase the number of bootstrap samples. **Hint:** Does changing the number of bootstap samples affect the standard error?
 
+It would appear that setting a high number of resamples decreases the standard error significantly.
 * * *
