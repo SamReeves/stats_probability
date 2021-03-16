@@ -283,7 +283,9 @@ shinyApp(
 
 ### 1.  Given a sample size of 60, 1000 bootstrap samples for each interval, and 50 confidence intervals constructed (the default values for the above app), what proportion of your confidence intervals include the true population proportion? Is this proportion exactly equal to the confidence level? If not, explain why. Make sure to include your plot in your answer.
 
-ci1.png
+https://github.com/TheWerefriend/data606/raw/main/lab5b/ci1.png
+
+![](ci1.png)
 
 In our plot above, we have 48/50 bootstrapped intervals containing the actual population proportion.  This is close enough to the confidence interval we had intended (96% vs. 95%) that I would say, yes, this experiment went exactly as expected.
 
@@ -309,7 +311,9 @@ There is 75% chance that the actual population proportion of people who believe 
 
 ### 3.  Using the app, calculate 50 confidence intervals at the confidence level you chose in the previous question, and plot all intervals on one plot, and calculate the proportion of intervals that include the true population proportion.  How does this percentage compare to the confidence level selected for the intervals?
 
-ci2.png
+https://github.com/TheWerefriend/data606/raw/main/lab5b/ci2.png
+
+![](ci2.png)
 
 34 / 50 = 68%
 
@@ -327,7 +331,9 @@ samp %>%
   get_ci(level = 0.99)
 ```
 
-ci3.png
+https://github.com/TheWerefriend/data606/raw/main/lab5b/ci3.png
+
+![](ci3.png)
 
 Only one out of 50 intervals did not contain the target statistic.  Our suspicions are confirmed.
 
@@ -338,4 +344,5 @@ Changing the sample sizes has a great impact on the widths of the intervals.  Wi
 ### 6.  Finally, given a sample size (say, 60), how does the width of the interval change as you increase the number of bootstrap samples. **Hint:** Does changing the number of bootstap samples affect the standard error?
 
 It would appear that setting a high number of resamples decreases the standard error significantly.
+
 * * *
