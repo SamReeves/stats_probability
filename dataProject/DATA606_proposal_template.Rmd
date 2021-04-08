@@ -1,0 +1,88 @@
+---
+title: "DATA 606 Data Project Proposal"
+author: "Sam Reeves"
+output: pdf_document
+---
+
+### Data Preparation
+
+```{r setup, echo=TRUE, results='hide', warning=FALSE, message=FALSE}
+library(zoo)
+library(tidyverse)
+rates <- read.csv(
+  "https://raw.githubusercontent.com/TheWerefriend/exchange-rate-prediction/master/rates.csv") %>%
+  na.locf()
+
+colnames(rates)[colnames(rates) == "X"] <- "date"
+rates <- mutate(rates, date=as.Date(date[[1]]))
+str(rates)
+```
+
+
+### Research question 
+
+**You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.**
+
+Is it reasonable to predict the USD/MMK exchange rate using the historical data for all ***/MMK exchange rates?  Does the prediction get better when you remove some currencies as independent variables?
+
+### Cases 
+
+**What are the cases, and how many are there?**
+Each day (this has halted since the coup), the Central Bank of Myanmar declares an exchange rate for each of 38 currencies which can be used to by Kyats.  We have nearly 10 years of data, each day is an observation, and there are 38 variables in each observation.
+
+
+### Data collection 
+
+**Describe the method of data collection.**
+
+This data was scraped from the Central Bank of Myanmar's main website.
+
+### Type of study 
+
+**What type of study is this (observational/experiment)?**
+
+This is an observational study.
+
+### Data Source 
+
+**If you collected the data, state self-collected. If not, provide a citation/link.**
+
+I collected this from a website which is currently inactive.
+
+
+### Dependent Variable
+
+**What is the response variable? Is it quantitative or qualitative?**
+
+The dependent variable is the USD/MMK exchange rate, which is quantitative.
+
+
+### Independent Variable
+
+**You should have two independent variables, one quantitative and one qualitative.**
+
+The independent variables are the 38 exchange rates given in previous observations.
+
+
+### Relevant summary statistics 
+
+**Provide summary statistics for each the variables. Also include appropriate visualizations related to your research question (e.g. scatter plot, boxplots, etc). This step requires the use of R, hence a code chunk is provided below. Insert more code chunks as needed.**
+
+```{r}
+xAndY <- function(days = 1, input = rates) {
+  x <- input[1:(nrow(input)-days), 2:39]
+  return(mutate(x, y = input[(days+1):nrow(input), "USD"]))
+}
+
+dataSplit <- function(data, ratio = 0.7) {
+  n <- nrow(data) * ratio
+  train <- data[1:n,]
+  test <- data[(n+1):nrow(data),]
+  return(list(train, test))
+}
+
+data <- xAndY(5) %>% dataSplit()
+model <- lm(formula = y ~ ., data = data[[1]])
+summary(model)
+```
+
