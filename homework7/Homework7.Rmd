@@ -13,6 +13,22 @@ knitr::opts_chunk$set(echo = TRUE)
 **Working backwards, Part II.** (5.24, p. 203) A 90% confidence interval for a population mean is (65, 77). The population distribution is approximately normal and the population standard deviation is unknown. This confidence interval is based on a simple random sample of 25 observations. Calculate the sample mean, the margin of error, and the sample standard deviation.
 
 
+```{r}
+x <- c(65, 77)
+mu <- mean(x)
+
+alpha <- 0.1
+n <- 25
+df <- n-1
+t_star <- qt(1 - alpha, df)
+
+st_dev <- sd(x) / sqrt(n)
+ME <- t_star * st_dev
+
+print(c(paste0("Sample mean:        ", mu),
+        paste0("Margin of error:    ", ME),
+        paste0("Standard deviation: ", st_dev)))
+```
 
 
 
@@ -22,11 +38,26 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **SAT scores.** (7.14, p. 261) SAT scores of students at an Ivy League college are distributed with a standard deviation of 250 points. Two statistics students, Raina and Luke, want to estimate the average SAT score of students at this college as part of a class project. They want their margin of error to be no more than 25 points.
 
-(a) Raina wants to use a 90% confidence interval. How large a sample should she collect?
-(b) Luke wants to use a 99% confidence interval. Without calculating the actual sample size, determine whether his sample should be larger or smaller than Raina's, and explain your reasoning.
+### (a) Raina wants to use a 90% confidence interval. How large a sample should she collect?
+
+```{r}
+z <- 1.645
+st_dev <- 250
+ME <- 25
+
+(n <- ceiling((z * st_dev / ME) ^2))
+```
+
+### (b) Luke wants to use a 99% confidence interval. Without calculating the actual sample size, determine whether his sample should be larger or smaller than Raina's, and explain your reasoning.
+
+The value for z is in the numerator, so it will go up.
+
 (c) Calculate the minimum required sample size for Luke.
 
-
+```{r}
+z <- 1.96
+(n <- floor((z * st_dev / ME) ^2))
+```
 
 
 
@@ -57,15 +88,35 @@ histPlot(hsb2$read - hsb2$write, col = COL[1],
          xlab = "Differences in scores (read - write)", ylab = "")
 ```
 
-(a) Is there a clear difference in the average reading and writing scores?
-(b) Are the reading and writing scores of each student independent of each other?
-(c) Create hypotheses appropriate for the following research question: is there an evident difference in the average scores of students in the reading and writing exam?
-(d) Check the conditions required to complete this test.
-(e) The average observed difference in scores is ${ \widehat { x }  }_{ read-write }=-0.545$, and the standard deviation of the differences is 8.887 points. Do these data provide convincing evidence of a difference between the average scores on the two exams?
-(f) What type of error might we have made? Explain what the error means in the context of the application.
-(g) Based on the results of this hypothesis test, would you expect a confidence interval for the average difference between the reading and writing scores to include 0? Explain your reasoning.
+### (a) Is there a clear difference in the average reading and writing scores?
 
+Yes, but it is very small.
 
+### (b) Are the reading and writing scores of each student independent of each other?
+
+Yes.
+
+### (c) Create hypotheses appropriate for the following research question: is there an evident difference in the average scores of students in the reading and writing exam?
+
+$H_0$: the absolute value of the difference of the means is 0.
+
+$H_A$: this value is not zero.
+
+### (d) Check the conditions required to complete this test.
+
+The sample size is sufficient and the samples are independent internally and among each other.
+
+### (e) The average observed difference in scores is ${ \widehat { x }  }_{ read-write }=-0.545$, and the standard deviation of the differences is 8.887 points. Do these data provide convincing evidence of a difference between the average scores on the two exams?
+
+We fail to reject the null hypothesis!
+
+### (f) What type of error might we have made? Explain what the error means in the context of the application.
+
+We could have rejected the null hypothesis, which would have been a Type 1 error.
+
+### (g) Based on the results of this hypothesis test, would you expect a confidence interval for the average difference between the reading and writing scores to include 0? Explain your reasoning.
+
+Yes, the standard deviation is fairly high given the observed difference in mean scores.
 
 --------------------------------------------------------------------------------
 
@@ -104,9 +155,19 @@ axis(2, at = c(15,25,35))
 ```
 
 
-
-
-
+```{r}
+aut_mean <- 22.92
+aut_SD <- 5.29
+man_mean <- 27.88
+man_SD <- 5.29
+diff <- man_mean - aut_mean
+n <- 26
+df <- n-1
+alpha <- 0.02
+t <- qt(alpha, df)
+SE <- sqrt((man_SD^2/n) + (aut_SD^2/n))
+(ci <- c(diff - (t * SE), diff + (t * SE)))
+```
 
 --------------------------------------------------------------------------------
 
@@ -115,8 +176,14 @@ axis(2, at = c(15,25,35))
 **Email outreach efforts.** (7.34, p. 284) A medical research group is recruiting people to complete short surveys about their medical history. For example, one survey asks for information on a person's family history in regards to cancer. Another survey asks about what topics were discussed during the person's last visit to a hospital. So far, as people sign up, they complete an average of just 4 surveys, and the standard deviation of the number of surveys is about 2.2. The research group wants to try a new interface that they think will encourage new enrollees to complete more surveys, where they will randomize each enrollee to either get the new interface or the current interface. How many new enrollees do they need for each interface to detect an effect size of 0.5 surveys per enrollee, if the desired power level is 80%?
 
 
+```{r}
+effect <- 0.5
+z1 <- qnorm(0.8)
+z2 <- qnorm(0.975)
+s <- 2.2
 
-
+(n <- ceiling((z1 + z2)^2 * (s^2 * 2) / effect^2))
+```
 
 
 --------------------------------------------------------------------------------
@@ -156,9 +223,16 @@ boxPlot(gss_sub$hrs1, fact = gss_sub$degree,
         col = COL[1,2], ylab = "Hours worked per week", xlim=c(0.6, 5.4))
 ```
 
-(a) Write hypotheses for evaluating whether the average number of hours worked varies across the five groups.
-(b) Check conditions and describe any assumptions you must make to proceed with the test.
-(c) Below is part of the output associated with this test. Fill in the empty cells.
+### (a) Write hypotheses for evaluating whether the average number of hours worked varies across the five groups.
+
+$H_0$: The mean values are all equal
+$H_A$: There is variation among the mean values.
+
+### (b) Check conditions and describe any assumptions you must make to proceed with the test.
+
+n is sufficiently large, the samples are all less than 10% of the population, and independent variable is continuous, and the categories are discrete.  We assume the data are basically normal and variability among categories is roughly the same.
+
+### (c) Below is part of the output associated with this test. Fill in the empty cells.
 
 \begin{center}
 \renewcommand{\arraystretch}{1.25}
@@ -170,25 +244,25 @@ boxPlot(gss_sub$hrs1, fact = gss_sub$degree,
                                     & F-value      
                                             & Pr($>$F) \\ 
   \hline
-degree      & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}       
-                    & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}       
+degree      & 4       
+                    & 2006.16       
                             & 501.54    
-                                    & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}   
+                                    & 2.183
                                             & 0.0682 \\ 
-Residuals   & \fbox{\textcolor{white}{{\footnotesize XXXXX}}} 
+Residuals   & 1168 
                     & 267,382     
-                            & \fbox{\textcolor{white}{{\footnotesize  XXXXX}}}          
+                            & 229.7791          
                                     &       
                                             &  \\ 
    \hline
-Total       & \fbox{\textcolor{white}{{\footnotesize XXXXX}}} 
-                    &\fbox{\textcolor{white}{{\footnotesize XXXXX}}}
+Total       & 1172 
+                    &269388.2
 \end{tabular}
 \end{center}
 
-(d) What is the conclusion of the test?
+### (d) What is the conclusion of the test?
 
-
+We fail to reject the null hypothesis.
 
 
 

@@ -51,9 +51,9 @@ There are observations on 13 different variables, some categorical and some nume
 ```
 
 
-1.  What are the cases in this data set? How many cases are there in our sample?
+### 1.  What are the cases in this data set? How many cases are there in our sample?
 
-Remember that you can answer this question by viewing the data in the data viewer or by using the following command:
+There are 13,583 observations.  Each contains information given by one youth on some classifying variables and values for risky behaviors.
 
 ```{r str}
 glimpse(yrbss)
@@ -69,7 +69,11 @@ Using visualization and summary statistics, describe the distribution of weights
 summary(yrbss$weight)
 ```
 
-2.  How many observations are we missing weights from?
+### 2.  How many observations are we missing weights from?
+
+```{r}
+sum(!complete.cases(yrbss))
+```
 
 Next, consider the possible relationship between a high schooler's weight and their physical activity. Plotting the data is a useful first step because it helps us quickly visualize trends, identify strong associations, and develop research questions.
 
@@ -81,8 +85,17 @@ yrbss <- yrbss %>%
 ```
 
 
-3.  Make a side-by-side boxplot of `physical_3plus` and `weight`. Is there a relationship between these two variables? What did you expect and why?
+### 3.  Make a side-by-side boxplot of `physical_3plus` and `weight`. Is there a relationship between these two variables? What did you expect and why?
 
+```{r}
+y_complete <- drop_na(yrbss)
+
+y_complete %>%
+  ggplot(aes(weight, physical_3plus)) +
+  geom_boxplot()
+```
+
+There are some outlying heavy people who don't exercise much, but generally, people who exercise a little way a little more.  Makes sense because muscle is heavy, but the difference seems too small to matter.
 
 The box plots show how the medians of the two distributions compare, but we can also compare the means of the distributions using the following to first group the data by the `physical_3plus` variable, and then calculate the mean `weight` in these groups using the `mean` function while ignoring missing values by setting the `na.rm` argument to `TRUE`.
 
@@ -96,9 +109,21 @@ There is an observed difference, but is this difference statistically significan
 
 ## Inference
 
-4.  Are all conditions necessary for inference satisfied? Comment on each. You can compute the group sizes with the `summarize` command above by defining a new variable with the definition `n()`.
+### 4.  Are all conditions necessary for inference satisfied? Comment on each. You can compute the group sizes with the `summarize` command above by defining a new variable with the definition `n()`.
 
-5.  Write the hypotheses for testing if the average weights are different for those who exercise at least times a week and those who don't.
+```{r}
+y_complete %>%
+  group_by(physical_3plus) %>%
+  summarize(n = n())
+```
+
+The data are independent, and the number of observations pertaining to each level of the variable are sufficiently large.  Thereis one very heavy outlier, but we don't mind.
+
+### 5.  Write the hypotheses for testing if the average weights are different for those who exercise at least 3 times a week and those who don't.
+
+$H_0$: The observed difference is due to random variance.
+
+$H_A$: The two groups of students have distinct properties not due to random variance.
 
 Next, we will introduce a new function, `hypothesize`, that falls into the `infer` workflow. You will use this method for conducting hypothesis tests. 
 
@@ -134,7 +159,7 @@ ggplot(data = null_dist, aes(x = stat)) +
 ```
 
 
-6. How many of these `null` permutations have a difference of at least `obs_stat`?
+### 6. How many of these `null` permutations have a difference of at least `obs_stat`?
 
 Now that the test is initialized and the null distribution formed, you can calculate the p-value for your hypothesis test using the function `get_p_value`.
 
@@ -145,7 +170,31 @@ null_dist %>%
 
 This the standard workflow for performing hypothesis tests.
 
+```{r}
+nrow(null_dist %>%
+       filter(stat >= obs_diff))
+```
+
+Apparently zero??
+
 7.  Construct and record a confidence interval for the difference between the weights of those who exercise at least three times a week and those who don't, and interpret this interval in context of the data.
+
+```{r}
+basics <- yrbss %>%
+  group_by(physical_3plus) %>%
+  summarize(count = n(),
+            averages = mean(weight, na.rm = TRUE),
+            deviations = sd(weight, na.rm = TRUE)) %>%
+  drop_na()
+
+x_bar <- diff(basics$averages)
+SE <- sqrt(basics$deviations[1]^2 / basics$count[1] +
+             basics$deviations[2]^2 / basics$count[2])
+
+(interval <- c(x_bar - (1.96 * SE), x_bar + (1.96 * SE)))
+```
+
+The real value for the difference among population means should fall within this interval 97.5% of the time.
 
 * * *
 
@@ -153,12 +202,83 @@ This the standard workflow for performing hypothesis tests.
 
 8.  Calculate a 95% confidence interval for the average height in meters (`height`) and interpret it in context.
 
+```{r}
+(y_complete %>%
+   specify(response = height) %>%
+   generate(reps = 1000, type = "bootstrap") %>%
+   calculate(stat = "mean") %>%
+   get_ci(level = 0.95))
+```
+
 9.  Calculate a new confidence interval for the same parameter at the 90% confidence level. Comment on the width of this interval versus the one obtained in the previous exercise.
+
+```{r}
+(y_complete %>%
+   specify(response = height) %>%
+   generate(reps = 1000, type = "bootstrap") %>%
+   calculate(stat = "mean") %>%
+   get_ci(level = 0.90))
+```
+
+The confidence level is lower, so the interval is narrower.
 
 10.  Conduct a hypothesis test evaluating whether the average height is different for those who exercise at least three times a week and those who don't.
 
+$H_0$: The difference is zero.
+$H_A$: The difference is not zero.
+
+```{r}
+(obs_diff <- y_complete %>%
+   specify(height ~ physical_3plus) %>%
+   calculate(stat = "diff in means", order = c("yes", "no")))
+
+null_dist <- y_complete %>%
+  specify(height ~ physical_3plus) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+mean(null_dist$stat)
+hist(null_dist$stat)
+```
+
+We fali to reject the null hypothesis....
+
 11.  Now, a non-inference task: Determine the number of different options there are in the dataset for the `hours_tv_per_school_day` there are.
 
+```{r}
+unique(yrbss$hours_tv_per_school_day)
+```
+
 12. Come up with a research question evaluating the relationship between height or weight and sleep. Formulate the question in a way that it can be answered using a hypothesis test and/or a confidence interval. Report the statistical results, and also provide an explanation in plain language. Be sure to check all assumptions, state your $\alpha$ level, and conclude in context.
+
+Does getting enough sleep (7 or more hours) have an effect on wight?
+
+$H_0$: The mean weight and the mean weight for people who sleep enough are the same.
+$H_A$: The two are not the same.
+
+$\alpha$ = 0.05
+
+```{r}
+yrbss <- yrbss %>%
+  mutate(enough_sleep = ifelse(school_night_hours_sleep %in% c("7","8","9","10+"),
+                               "yes", "no"))
+```
+
+```{r}
+(obs_diff <- yrbss %>%
+   specify(weight ~ enough_sleep) %>%
+   calculate(stat = "diff in means", order = c("yes", "no")))
+
+null_dist <- yrbss %>%
+  specify(weight ~ enough_sleep) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+mean(null_dist$stat)
+```
+
+We fail to reject the null hypothesis.
 
 * * *
